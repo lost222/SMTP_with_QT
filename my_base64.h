@@ -67,16 +67,20 @@ class SMTPServer: public QObject {
 
 private:
     std::vector<std::string> users;
+    std::vector<std::string> passwd;
     std::vector<std::string> to_mails;
     int usernum; 
     bool isdata; 
+    int islogin;
     std::string data;
+    std::string log_user;
 public:
     explicit SMTPServer(QObject *parent = 0);
 //    SMTPServer();
     bool deal_with_users(std::string user);
     const char* respond(const char *);
     void save_mail();
+    bool is_log_ok(std::string log_username, std::string log_passwd);
 
 signals:
     void sig_mail_saved(const QString&);

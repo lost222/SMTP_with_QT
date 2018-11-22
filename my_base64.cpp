@@ -3,6 +3,7 @@
 //
 #include <Winsock2.h>
 #include <iostream>
+#include<QDebug>
 #include "my_base64.h"
 int my_base64::char2int(char &c) {
     if(c=='+') return 62;
@@ -69,13 +70,18 @@ SMTPServer::SMTPServer(QObject *parent) : QObject(parent){
     std::string uPath = PROJECT_PATH+"userdata\\users.txt";
     usertxt.open(uPath);
     if (!usertxt.is_open()) { exit(-1); }
-    std::string user ;
+    std::string user;
     std::getline(usertxt, user);
     while (!user.empty()){
+        std::size_t sp = user.find('-');
+        std::string pswd = user.substr(sp+1, user.size());
+        user = user.substr(0, sp);
         users.push_back(user);
+        this->passwd.push_back(pswd);
         std::getline(usertxt, user);
     }
     usertxt.close();
+
 
 
     for(std::vector<std::string>::iterator i = users.begin();i != users.end(); i++){
@@ -85,6 +91,42 @@ SMTPServer::SMTPServer(QObject *parent) : QObject(parent){
 }
 
 const char* SMTPServer::respond(const char* request) {
+    //user name
+    if (islogin == 1) {
+        // 保存用户名
+//        std::string re = std::string(request);
+//        my_base64 de_re = my_base64(re);
+//        std::string username = de_re.decode2string();
+        QByteArray re = QByteArray(request);
+        QByteArray barray = QByteArray::fromBase64(re);
+        QString u = QString(barray);
+        std::string username = u.toStdString();
+        this->log_user = username;
+        // 要密码
+        islogin++;
+        return reply_code[26];
+    }
+
+    // password
+    if ( islogin == 2 ) {
+        // save password
+//        std::string re = std::string(request);
+//        my_base64 de_re = my_base64(re);
+//        std::string password = de_re.decode2string();
+        QByteArray re = QByteArray(request);
+        QByteArray barray = QByteArray::fromBase64(re);
+        QString u = QString(barray);
+        std::string password = u.toStdString();
+        bool ok = is_log_ok(log_user, password);
+        if ( ok ){
+            islogin = 0; // end login
+            return reply_code[27];
+        }
+        return reply_code[26];
+
+        //检查是不是匹配
+    }
+
     //DATA
     if (this->isdata){
         this->data += request;
@@ -93,17 +135,21 @@ const char* SMTPServer::respond(const char* request) {
 		if(rfound == std::string::npos){return "Nsend";}
 		this->save_mail();
 		isdata = false;
+        islogin = 0;
 		return reply_code[6];
-        //if (request[0] == '.'){
-        //    isdata = false;
-        //    //save_mail(); // 阻塞式
-        //    return reply_code[6];
-        //}
     }
     // HELO
     if (strncmp(request, "EHLO", 4) == 0) {
         return reply_code[6];
     }
+    //AUTH LOGIN
+    if (strncmp(request, "AUTH", 4) == 0) {
+       islogin = 1;
+       // 要用户名
+       return reply_code[25];
+    }
+    //
+
     // MAIL FROM : 判断是不是和userlist 里的一样 不一样返回502
     if (strncmp(request, "MAIL FROM", 9) == 0) {
         std::string user= std::string(request);
@@ -166,5 +212,11 @@ void SMTPServer::save_mail() {
 
     emit sig_mail_saved(QString::fromStdString(oPath));
     return ;
+}
 
+bool SMTPServer::is_log_ok(std::string log_username, std::string log_passwd)
+{
+    int match = 0;
+    while( log_username != users[match] ){match++;}
+    return this->passwd[match] == log_passwd;
 }
