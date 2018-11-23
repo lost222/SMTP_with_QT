@@ -130,8 +130,11 @@ void ListenThread::run()
 //                std::cout<<"C:"<<recvbuf<<std::endl;
 //                std::cout<<"S:"<<re;
                 QString str = "";
-//                if (recvbuf[iResult - 1] == '.')
-                str.sprintf("C: %s\nS: %s",recvbuf,re);
+                if (recvbuf[iResult - 3] == '.') {
+                    str.sprintf("C: %s\nS: %s","sending data to smtp server",re);
+                }else{
+                    str.sprintf("C: %s\nS: %s",recvbuf,re);
+                }
                 emit stringChanged(str);
             }
 

@@ -70,21 +70,16 @@ bool MainWindow::decode_File(const QString &fileName){
 //                line = file.readLine();
 //                line = line.remove(line.size()-2 , 2);
                 QByteArray to_de = file.readAll();
-
-                //QByteArray nline = file.readLine();
-//                while(nline != QByteArray("\r\n") && !file.atEnd()){
-//                    nline = nline.remove(nline.size()-2,2);
-//                    line = line + nline;
-//                    QByteArray nline = file.readLine();
-//                    qDebug()<<nline;
-//                }
-                //line.replace(QByteArray("\r\n"), QByteArray(""));
                 to_de.replace(QByteArray("\n"), QByteArray(""));
-                qDebug()<<to_de;
+//                qDebug()<<to_de;
 //                if (decode_type == 1)
-                QByteArray barray = QByteArray::fromBase64(to_de);
+//                QByteArray barray = QByteArray::fromBase64(to_de);
+                std::string to_decode = to_de.toStdString();
+                my_base64 m2 = my_base64(to_decode);
+                std::vector<unsigned char> buf = m2.decode2num();
+                QByteArray* img = new QByteArray(reinterpret_cast<const char*>(buf.data()), buf.size());
                 QImage image;
-                image.loadFromData(barray);
+                image.loadFromData(*img);
                 ui->image->clear();
                 ui->image->setPixmap(QPixmap::fromImage(image));
             }

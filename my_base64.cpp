@@ -4,7 +4,9 @@
 #include <Winsock2.h>
 #include <iostream>
 #include<QDebug>
+#include<algorithm>
 #include "my_base64.h"
+
 int my_base64::char2int(char &c) {
     if(c=='+') return 62;
     if(c=='/') return 63;
@@ -14,14 +16,27 @@ int my_base64::char2int(char &c) {
         return c+4;
     }
     return 0;
-    //当前异常处理是不完善的，考虑在这里抛出异常
-
 }
+
+bool is_not_b64_member(char &c){
+    if (isalnum(c) || c=='+' || c=='/' || c=='='){return false;}
+    return true;
+}
+
 my_base64::my_base64(std::string &input_s) {
     this->to_decode = input_s;
+    to_decode.erase(remove_if(to_decode.begin(), to_decode.end(), is_not_b64_member), to_decode.end());
+    std::cout<<"Length : "<<to_decode.length()<<std::endl;
+    int i=0;
+    if (to_decode.length() % 4 != 0){
+        i = to_decode.length() % 4;
+        for(int j=0; j<i;j++){
+            to_decode.erase(to_decode.end() - 1);
+        }
+    }
 }
-std::vector<unsigned int> my_base64::decode2num() {
-    std::vector<unsigned int> result;
+std::vector<unsigned char> my_base64::decode2num() {
+    std::vector<unsigned char> result;
     // 考虑溢出情况
     for(int i=0;i<to_decode.length(); i+=4){
         unsigned long sum=0;
@@ -35,25 +50,24 @@ std::vector<unsigned int> my_base64::decode2num() {
         unsigned int put_in_2 = sum&0xff;
         sum = sum >> 8;
         unsigned int put_in_1 = sum&0xff;
-        std::cout<<put_in_1<<" "<<put_in_2<<" "<<put_in_3<<std::endl;
+       // std::cout<<put_in_1<<" "<<put_in_2<<" "<<put_in_3<<std::endl;
         result.push_back(put_in_1);
         result.push_back(put_in_2);
         result.push_back(put_in_3);
     }
-    if(*result.end()==0) {result.erase(result.end());}
-    if(*result.end()==0) {result.erase(result.end());}
+    std::cout<<"OUT of LOOP"<<std::endl;
+    if(*(result.end()-1)==0) {result.erase(result.end()-1);}
+    if(*(result.end()-1)==0) {result.erase(result.end()-1);}
+    std::cout<<"END remove end"<<std::endl;
     return result;
 }
 
 std::string my_base64::decode2string() {
-    std::vector<unsigned int> num;
-   // std::cout<<"SIZE : "<<num.size()<<std::endl;
+    std::vector<unsigned char> num;
+    std::cout<<"SIZE NUM : "<<num.size()<<std::endl;
     num = this->decode2num();
-   // std::cout<<"SIZE : "<<num.size()<<std::endl;
-    std::string result;
-    for(std::vector<unsigned int>::iterator i=num.begin(); i!=num.end(); i++){
-        result.push_back(char(*i));
-    }
+    std::cout<<"SIZE NUM : "<<num.size()<<std::endl;
+    std::string result = std::string(num.begin(), num.end());
     return result;
 }
 
@@ -94,13 +108,13 @@ const char* SMTPServer::respond(const char* request) {
     //user name
     if (islogin == 1) {
         // 保存用户名
-//        std::string re = std::string(request);
-//        my_base64 de_re = my_base64(re);
-//        std::string username = de_re.decode2string();
-        QByteArray re = QByteArray(request);
-        QByteArray barray = QByteArray::fromBase64(re);
-        QString u = QString(barray);
-        std::string username = u.toStdString();
+        std::string re = std::string(request);
+        my_base64 de_re = my_base64(re);
+        std::string username = de_re.decode2string();
+//        QByteArray re = QByteArray(request);
+//        QByteArray barray = QByteArray::fromBase64(re);
+//        QString u = QString(barray);
+//        std::string username = u.toStdString();
         this->log_user = username;
         // 要密码
         islogin++;
@@ -110,13 +124,13 @@ const char* SMTPServer::respond(const char* request) {
     // password
     if ( islogin == 2 ) {
         // save password
-//        std::string re = std::string(request);
-//        my_base64 de_re = my_base64(re);
-//        std::string password = de_re.decode2string();
-        QByteArray re = QByteArray(request);
-        QByteArray barray = QByteArray::fromBase64(re);
-        QString u = QString(barray);
-        std::string password = u.toStdString();
+        std::string re = std::string(request);
+        my_base64 de_re = my_base64(re);
+        std::string password = de_re.decode2string();
+//        QByteArray re = QByteArray(request);
+//        QByteArray barray = QByteArray::fromBase64(re);
+//        QString u = QString(barray);
+//        std::string password = u.toStdString();
         bool ok = is_log_ok(log_user, password);
         if ( ok ){
             islogin = 0; // end login
@@ -198,18 +212,8 @@ void SMTPServer::save_mail() {
     std::string oPath = path+to+".txt";
     std::ofstream mail_file(oPath);
     if (!mail_file.is_open()) {exit(-1);}
-    //mail_file<<"From: "<<users[usernum]<<std::endl;
-    //mail_file<<"To: "<<to_mails[0]<<std::endl;
-
-    //for(unsigned int i=1; i<to_mails.size(); i++){
-    //    mail_file<<"Cc: "<<to_mails[i]<<std::endl;
-    //}
-    ////        Date: Tue, 15 January 2008 16:02:43 -0500
-    //mail_file<<"Week"<<date.wDayOfWeek<<", "<<date.wDay<<" "<<date.wMonth<<" "<<date.wYear<<" "
-    //         <<date.wHour<<":"<<date.wMinute<<":"<<date.wSecond<<std::endl;
     mail_file<<data;
     mail_file.close();
-
     emit sig_mail_saved(QString::fromStdString(oPath));
     return ;
 }

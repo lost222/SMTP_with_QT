@@ -57,7 +57,7 @@ private:
     int char2int(char&);
 public:
     my_base64(std::string &input_s);
-    std::vector<unsigned int> decode2num();
+    std::vector<unsigned char> decode2num();
     std::string decode2string();
 };
 
