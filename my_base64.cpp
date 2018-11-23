@@ -136,7 +136,7 @@ const char* SMTPServer::respond(const char* request) {
             islogin = 0; // end login
             return reply_code[27];
         }
-        return reply_code[26];
+        return reply_code[21];
 
         //检查是不是匹配
     }
@@ -221,6 +221,6 @@ void SMTPServer::save_mail() {
 bool SMTPServer::is_log_ok(std::string log_username, std::string log_passwd)
 {
     int match = 0;
-    while( log_username != users[match] ){match++;}
+    while( log_username != users[match] && match < users.size() ){match++;}
     return this->passwd[match] == log_passwd;
 }

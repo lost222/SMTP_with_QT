@@ -83,8 +83,6 @@ bool MainWindow::decode_File(const QString &fileName){
                 image.loadFromData(*img);
                 Form *img_di = new Form();
                 img_di->setPic(image);
-//                img_di->ui->image->clear();
-//                img_di->ui->image->setPixmap(QPixmap::fromImage(image));
                 img_di->show();
             }
 

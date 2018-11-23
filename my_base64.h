@@ -38,7 +38,7 @@ const char reply_code[][100]={
         {"521 <domain>%s does not accept mail (see rfc1846)\r\n"},  //18
         {"530 Access denied (???a Sendmailism)\r\n"},  //19
         {"550 Requested action not taken: mailbox unavailable\r\n"},  //20
-        {"551 User not local; please try <forward-path>%s\r\n"},  //21
+        {"551 User not local; please try another User\r\n"},  //21
         {"552 Requested mail action aborted: exceeded storage allocation\r\n"},  //22
         {"553 authentication is required\r\n"},  //23
 
