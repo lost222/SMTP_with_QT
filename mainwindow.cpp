@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include "form.h"
 #include "ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -80,8 +81,11 @@ bool MainWindow::decode_File(const QString &fileName){
                 QByteArray* img = new QByteArray(reinterpret_cast<const char*>(buf.data()), buf.size());
                 QImage image;
                 image.loadFromData(*img);
-                ui->image->clear();
-                ui->image->setPixmap(QPixmap::fromImage(image));
+                Form *img_di = new Form();
+                img_di->setPic(image);
+//                img_di->ui->image->clear();
+//                img_di->ui->image->setPixmap(QPixmap::fromImage(image));
+                img_di->show();
             }
 
 

@@ -15,13 +15,16 @@ TEMPLATE = app
 SOURCES += main.cpp\
         mainwindow.cpp \
     listenthread.cpp \
-    my_base64.cpp
+    my_base64.cpp \
+    form.cpp
 
 HEADERS  += mainwindow.h \
     listenthread.h \
-    my_base64.h
+    my_base64.h \
+    form.h
 
 
-FORMS    += mainwindow.ui
+FORMS    += mainwindow.ui \
+    form.ui
 LIBS += ws2_32.lib
 DEFINES += WIN32_LEAN_AND_MEAN
